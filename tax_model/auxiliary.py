@@ -44,7 +44,7 @@ if __name__ == '__main__':
 			sol_equality.invest_rate, sol_equality.catch, sol_equality.fine_rate)
 	plt.xlabel("Step")
 	plt.ylabel("Gini Index")
-	plt.savefig("plots/Gini_index_solution_equality.png")
+	# plt.savefig("plots/Gini_index_solution_equality.png")
 
 	# plot distribution of initial wealth
 	for _ in range(length):
@@ -55,7 +55,7 @@ if __name__ == '__main__':
 	initial["Wealth"].hist(grid=False, alpha=0.25, edgecolor="black", color="blue")
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/initial_wealth_solution_equality.png")
+	# plt.savefig("plots/initial_wealth_solution_equality.png")
 
 	# plot distribution of final wealth
 	final = df.xs(10, level="Step")
@@ -63,7 +63,7 @@ if __name__ == '__main__':
 	final["Wealth"].hist(grid=False, alpha=0.25, edgecolor="black", color="green")
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/final_wealth_solution_equality.png")
+	# plt.savefig("plots/final_wealth_solution_equality.png")
 
 	# OPTIMAL MODEL WITH RESPECT TO JUSTICE
 	with open("optimal_models/solution_evaluate_justice.model", "rb") as file:
@@ -93,7 +93,7 @@ if __name__ == '__main__':
 		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|")
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/initial_wealth_solution_justice.png")
+	# plt.savefig("plots/initial_wealth_solution_justice.png")
 
 	# distribution of final wealth with rug plot
 	final = df.xs(10, level="Step")
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|")
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/final_wealth_solution_justice.png")
+	# plt.savefig("plots/final_wealth_solution_justice.png")
 
 	# OPTIMAL MODEL WITH RESPECT TO THE AGGREGATED VALUES
 	with open("optimal_models/solution_aggregate_equality_justice.model", "rb") as file:
@@ -134,7 +134,7 @@ if __name__ == '__main__':
 			sol_aggregate.invest_rate, sol_aggregate.catch, sol_aggregate.fine_rate)
 	plt.xlabel("Step")
 	plt.ylabel("Gini Index")
-	plt.savefig("plots/Gini_index_solution_aggregated.png")
+	# plt.savefig("plots/Gini_index_solution_aggregated.png")
 
 	# distribution for initial wealth with rug plot
 	for _ in range(length):
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|")
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/initial_wealth_solution_aggregated.png")
+	# plt.savefig("plots/initial_wealth_solution_aggregated.png")
 
 	# distribution of final wealth with rug plot
 	final = df.xs(10, level="Step")
@@ -169,4 +169,4 @@ if __name__ == '__main__':
 		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|")
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/final_wealth_solution_aggregated.png")
+	# plt.savefig("plots/final_wealth_solution_aggregated.png")

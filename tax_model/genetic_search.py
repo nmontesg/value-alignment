@@ -12,7 +12,7 @@
 import pickle
 
 import portion
-from fitness_functions import evaluate_justice
+from fitness_functions import evaluate_equality, evaluate_justice, aggregate_equality_justice
 from genetic_optimizer import GeneticOptimizer
 
 from tax_model import Society
@@ -36,14 +36,14 @@ optimizer = GeneticOptimizer(
 	model_cls=Society,
 	params_optimize=params_optimize,
 	params_fixed=params_fixed,
-	fitness_threshold=0.7,
-	pop_size = 5,
-	fitness_function=evaluate_justice  # set here the alignment function of choice
+	fitness_threshold=0.6,
+	pop_size=10,
+	fitness_function=aggregate_equality_justice  # set here the alignment function of choice
 )
 
 if __name__ == '__main__':
 	optimal_model = optimizer.genetic_search()
 
-	filename = "optimal_models/solution_" + optimizer.fitness_function.__name__ + ".model"
+	filename = "solution_" + optimizer.fitness_function.__name__ + ".model"
 	with open(filename, "wb") as file:
 		pickle.dump(optimal_model, file)
