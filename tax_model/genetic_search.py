@@ -37,7 +37,7 @@ optimizer = GeneticOptimizer(
 	params_optimize=params_optimize,
 	params_fixed=params_fixed,
 	fitness_threshold=0.6,
-	pop_size=10,
+	pop_size=20,
 	fitness_function=aggregate_equality_justice  # set here the alignment function of choice
 )
 
