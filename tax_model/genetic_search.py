@@ -36,9 +36,8 @@ optimizer = GeneticOptimizer(
 	model_cls=Society,
 	params_optimize=params_optimize,
 	params_fixed=params_fixed,
-	fitness_threshold=0.6,
 	pop_size=100,
-	fitness_function=aggregate_equality_justice  # set here the alignment function of choice
+	fitness_function=evaluate_justice  # set here the alignment function of choice
 )
 
 if __name__ == '__main__':
