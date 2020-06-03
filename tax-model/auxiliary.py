@@ -44,7 +44,7 @@ if __name__ == '__main__':
 			sol_equality.invest_rate, sol_equality.catch, sol_equality.fine_rate)
 	plt.xlabel("Step")
 	plt.ylabel("Gini Index")
-	plt.savefig("plots/Gini_index_solution_equality.png")
+	plt.savefig("plots/Gini_index_solution_equality.eps", format='eps', bbox_inches='tight')
 
 	# plot distribution of initial wealth
 	for _ in range(length):
@@ -52,18 +52,18 @@ if __name__ == '__main__':
 	df = sol_equality.data_collector.get_agent_vars_dataframe()
 	initial = df.xs(0, level="Step")
 	plt.figure(figsize=(10, 6))
-	initial["Wealth"].hist(grid=False, alpha=0.25, edgecolor="black", color="blue")
+	initial["Wealth"].hist(grid=False, edgecolor="black", color="powderblue")
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/initial_wealth_solution_equality.png")
+	plt.savefig("plots/initial_wealth_solution_equality.eps", format='eps', bbox_inches='tight')
 
 	# plot distribution of final wealth
 	final = df.xs(10, level="Step")
 	plt.figure(figsize=(10, 6))
-	final["Wealth"].hist(grid=False, alpha=0.25, edgecolor="black", color="green")
+	final["Wealth"].hist(grid=False, edgecolor="black", color="limegreen")
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/final_wealth_solution_equality.png")
+	plt.savefig("plots/final_wealth_solution_equality.eps", format='eps', bbox_inches='tight')
 
 	# OPTIMAL MODEL WITH RESPECT TO JUSTICE
 	with open("optimal_models/solution_evaluate_justice.model", "rb") as file:
@@ -82,7 +82,6 @@ if __name__ == '__main__':
 	df = sol_justice.data_collector.get_agent_vars_dataframe()
 	initial = df.xs(0, level="Step")
 	plt.figure(figsize=(10, 6))
-	initial["Wealth"].hist(grid=False, alpha=0.25, edgecolor="black", color="blue")
 	for index, data in initial.iterrows():
 		if data["Evader"]:
 			color = "red"
@@ -90,15 +89,15 @@ if __name__ == '__main__':
 		else:
 			color = "black"
 			size = 400
-		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|")
+		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|", zorder=10)
+	initial["Wealth"].hist(grid=False, edgecolor="black", color="powderblue", zorder=0)
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/initial_wealth_solution_justice.png")
+	plt.savefig("plots/initial_wealth_solution_justice.eps", format='eps', bbox_inches='tight')
 
 	# distribution of final wealth with rug plot
 	final = df.xs(10, level="Step")
 	plt.figure(figsize=(10, 6))
-	final["Wealth"].hist(grid=False, alpha=0.25, edgecolor="black", color="green")
 	for index, data in final.iterrows():
 		if data["Evader"]:
 			color = "red"
@@ -106,10 +105,11 @@ if __name__ == '__main__':
 		else:
 			color = "black"
 			size = 400
-		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|")
+		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|", zorder=10)
+	final["Wealth"].hist(grid=False, edgecolor="black", color="limegreen", zorder=0)
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/final_wealth_solution_justice.png")
+	plt.savefig("plots/final_wealth_solution_justice.eps", format='eps', bbox_inches='tight')
 
 	# OPTIMAL MODEL WITH RESPECT TO THE AGGREGATED VALUES
 	with open("optimal_models/solution_aggregate_equality_justice.model", "rb") as file:
@@ -134,7 +134,7 @@ if __name__ == '__main__':
 			sol_aggregate.invest_rate, sol_aggregate.catch, sol_aggregate.fine_rate)
 	plt.xlabel("Step")
 	plt.ylabel("Gini Index")
-	plt.savefig("plots/Gini_index_solution_aggregated.png")
+	plt.savefig("plots/Gini_index_solution_aggregated.eps", format='eps', bbox_inches='tight')
 
 	# distribution for initial wealth with rug plot
 	for _ in range(length):
@@ -142,7 +142,6 @@ if __name__ == '__main__':
 	df = sol_aggregate.data_collector.get_agent_vars_dataframe()
 	initial = df.xs(0, level="Step")
 	plt.figure(figsize=(10, 6))
-	initial["Wealth"].hist(grid=False, alpha=0.25, edgecolor="black", color="blue")
 	for index, data in initial.iterrows():
 		if data["Evader"]:
 			color = "red"
@@ -150,15 +149,15 @@ if __name__ == '__main__':
 		else:
 			color = "black"
 			size = 400
-		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|")
+		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|", zorder=10)
+	initial["Wealth"].hist(grid=False, edgecolor="black", color="powderblue", zorder=0)
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/initial_wealth_solution_aggregated.png")
+	plt.savefig("plots/initial_wealth_solution_aggregated.eps", format='eps', bbox_inches='tight')
 
 	# distribution of final wealth with rug plot
 	final = df.xs(10, level="Step")
 	plt.figure(figsize=(10, 6))
-	final["Wealth"].hist(grid=False, alpha=0.25, edgecolor="black", color="green")
 	for index, data in final.iterrows():
 		if data["Evader"]:
 			color = "red"
@@ -166,7 +165,8 @@ if __name__ == '__main__':
 		else:
 			color = "black"
 			size = 400
-		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|")
+		plt.scatter(data["Wealth"], 3, color=color, s=size, marker="|", zorder=10)
+	final["Wealth"].hist(grid=False, edgecolor="black", color="limegreen", zorder=0)
 	plt.xlabel("Wealth")
 	plt.ylabel("Count")
-	plt.savefig("plots/final_wealth_solution_aggregated.png")
+	plt.savefig("plots/final_wealth_solution_aggregated.eps", format='eps', bbox_inches='tight')

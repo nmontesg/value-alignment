@@ -68,25 +68,25 @@ for i in range(11):
 
 # save results to binary files
 norm_str = "".join(map(str, norm0))
-with open("prisoner_dilemma/results/algn_eq_" + norm_str + ".nparray", "wb+") as file:
+with open("results/algn_eq_" + norm_str + ".nparray", "wb+") as file:
 	pickle.dump(algn_eq, file)
-with open("prisoner_dilemma/results/algn_gain_" + norm_str + ".nparray", "wb") as file:
+with open("results/algn_gain_" + norm_str + ".nparray", "wb") as file:
 	pickle.dump(algn_gain, file)
 
 # import and plot in heat map alignment with respect to equality
-algn_eq = pickle.load(open("prisoner_dilemma/results/algn_eq_" + norm_str + ".nparray", 'rb'))
+algn_eq = pickle.load(open("results/algn_eq_" + norm_str + ".nparray", 'rb'))
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(12,10))
 cax = ax.imshow(algn_eq, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='equal', vmin=-1, vmax=1)
 cbar = fig.colorbar(cax)
 cbar.set_label(r'$\mathsf{Algn}_{equality}^{\alpha, \beta}$', rotation=90)
 plt.xlabel(r'Cooperation probability of $\beta$')
 plt.ylabel(r'Cooperation probability of $\alpha$')
-plt.savefig("prisoner_dilemma/plots/random_PD_align_eq.png")
+plt.savefig("plots/random_PD_align_eq.eps", format="eps")
 
 
 # plot according to alignment with respect to personal gain
-algn_gain_alpha = pickle.load(open("prisoner_dilemma/results/algn_gain_" + norm_str + ".nparray", 'rb'))
+algn_gain_alpha = pickle.load(open("results/algn_gain_" + norm_str + ".nparray", 'rb'))
 algn_gain_beta = algn_gain_alpha.T
 
 plt.subplots(figsize=(22, 9))
@@ -104,4 +104,4 @@ plt.imshow(algn_gain_alpha, cmap='binary', origin='lower', extent=[-0.05, 1.05, 
 plt.xticks([0, 0.5, 1])
 plt.xlabel(r'Cooperation probability of $\beta$')
 plt.ylabel(r'Cooperation probability of $\alpha$')
-plt.savefig("prisoner_dilemma/plots/random_PD_align_gain.png")
+plt.savefig("plots/random_PD_align_gain.eps", format="eps")

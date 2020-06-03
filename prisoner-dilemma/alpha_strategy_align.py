@@ -85,7 +85,6 @@ with open("results/alpha_strat_algn_gain_beta_" + norm_str + ".nparray", "wb") a
 # plot alignment with respect to equality
 align_eq = pickle.load(open("results/alpha_strat_algn_eq_" + norm_str + ".nparray", 'rb'))
 
-
 plt.figure(figsize=(12, 10))
 plt.plot(probabilities, align_eq[0], color='black', marker='o', markersize=10, linewidth=2.5, label='Tit-for-tat')
 plt.plot(probabilities, align_eq[1], color='blue', marker='o', markersize=10, linewidth=2.5, label='Mostly cooperate')
@@ -94,7 +93,7 @@ plt.grid()
 plt.legend(loc="center left", bbox_to_anchor=(1., 0.5))
 plt.xlabel(r"Cooperation probability of $\beta$")
 plt.ylabel(r"$\mathsf{Algn}^{\alpha,\beta}_{equality}$", labelpad=0)
-plt.savefig("plots/alpha_strat_algn_eq.png", bbox_inches='tight')
+plt.savefig("plots/alpha_strat_algn_eq.eps", format='eps', bbox_inches='tight')
 
 # plot alignment with respect to personal gain
 # plot according to alignment with respect to personal gain
@@ -119,4 +118,4 @@ plt.grid()
 plt.ylim(-0.65, 0.65)
 plt.xlabel(r"Cooperation probability of $\beta$")
 plt.legend(loc="center left", bbox_to_anchor=(1., 0.5))
-plt.savefig("plots/alpha_strat_algn_gain.png", bbox_inches='tight')
+plt.savefig("plots/alpha_strat_algn_gain.eps", format='eps', bbox_inches='tight')
