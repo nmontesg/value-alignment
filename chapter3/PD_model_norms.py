@@ -6,16 +6,17 @@
 
 @description: ...
 """
-
+# TODO: comment code properly
 import copy
 import itertools
 import pickle
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 plt.rcParams.update({'font.size': 30})
 
-from numpy.random import choice
+from numpy.random import choice, uniform
 from mesa import Agent, Model
 from mesa.time import BaseScheduler
 from mesa.datacollection import DataCollector
@@ -28,8 +29,6 @@ def pref_GI(model):
 	x_alpha = model.schedule.agents[0].wealth
 	x_beta = model.schedule.agents[1].wealth
 	return 1-2*abs(x_alpha-x_beta)/max(x_alpha+x_beta, 1.E-5)
-
-
 
 
 class Prisoner(Agent):
@@ -50,7 +49,6 @@ class Prisoner(Agent):
 		of cooperation.
 		"""
 		self.action = choice(['C', 'D'], p=[self.prob, 1 - self.prob])
-
 
 
 class RandomDilemma(Model):
@@ -115,6 +113,7 @@ class RandomDilemmaFixedTaxes(RandomDilemma):
 			- collect the data on individual wealth.
 		"""
 		self.schedule.step()
+		
 		if self.schedule.agents[0].action == 'C' and self.schedule.agents[1].action == 'C':
 			self.schedule.agents[0].wealth += self.a * (1 - self.tax_rate)
 			self.schedule.agents[1].wealth += self.a * (1 - self.tax_rate)
@@ -127,6 +126,7 @@ class RandomDilemmaFixedTaxes(RandomDilemma):
 		elif self.schedule.agents[0].action == 'D' and self.schedule.agents[1].action == 'D':
 			self.schedule.agents[0].wealth += self.d * (1 - self.tax_rate)
 			self.schedule.agents[1].wealth += self.d * (1 - self.tax_rate)
+			
 		self.data_collector.collect(self)	
 		
 		
@@ -158,6 +158,77 @@ class RandomDilemmaIncrementalTaxes(RandomDilemma):
 		elif self.schedule.agents[0].action == 'D' and self.schedule.agents[1].action == 'D':
 			self.schedule.agents[0].wealth += self.d - self.tax_d
 			self.schedule.agents[1].wealth += self.d - self.tax_d
+			
+		self.data_collector.collect(self)	
+		
+		
+class RandomDilemmaNDefections(RandomDilemma):
+	"""
+	Class for a random dilemma model where no more than n defections are allowed.
+	"""
+	def __init__(self, pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy, n):
+		super().__init__(pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy)
+		self.n = n
+		
+		# add counter for defections for each agent
+		for ag in self.schedule.agents:
+			ag.counter = 0
+		
+	def step(self):
+		self.schedule.step()
+		
+		# if agents defect add to the counter
+		for ag in self.schedule.agents:
+			if ag.action == 'D':
+				ag.counter += 1
+			# if agent exceeds defections, change 
+			if ag.counter > self.n:
+				ag.action = 'C'
+				ag.counter = 0
+				
+		if self.schedule.agents[0].action == 'C' and self.schedule.agents[1].action == 'C':
+			self.schedule.agents[0].wealth += self.a
+			self.schedule.agents[1].wealth += self.a
+		elif self.schedule.agents[0].action == 'C' and self.schedule.agents[1].action == 'D':
+			self.schedule.agents[0].wealth += self.b
+			self.schedule.agents[1].wealth += self.c
+		elif self.schedule.agents[0].action == 'D' and self.schedule.agents[1].action == 'C':
+			self.schedule.agents[0].wealth += self.c
+			self.schedule.agents[1].wealth += self.b
+		elif self.schedule.agents[0].action == 'D' and self.schedule.agents[1].action == 'D':
+			self.schedule.agents[0].wealth += self.d
+			self.schedule.agents[1].wealth += self.d
+			
+		self.data_collector.collect(self)	
+		
+		
+class RandomDilemmaDoubleDefection(RandomDilemma):
+	"""
+	Class for a random dilemma model where double defections are not allowed.
+	"""
+	def __init__(self, pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy):
+		super().__init__(pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy)
+		
+	def step(self):
+		self.schedule.step()
+						
+		if self.schedule.agents[0].action == 'C' and self.schedule.agents[1].action == 'C':
+			self.schedule.agents[0].wealth += self.a
+			self.schedule.agents[1].wealth += self.a
+		elif self.schedule.agents[0].action == 'C' and self.schedule.agents[1].action == 'D':
+			self.schedule.agents[0].wealth += self.b
+			self.schedule.agents[1].wealth += self.c
+		elif self.schedule.agents[0].action == 'D' and self.schedule.agents[1].action == 'C':
+			self.schedule.agents[0].wealth += self.c
+			self.schedule.agents[1].wealth += self.b
+		elif self.schedule.agents[0].action == 'D' and self.schedule.agents[1].action == 'D':
+			if uniform() < 0.5:
+				self.schedule.agents[0].wealth += self.b
+				self.schedule.agents[1].wealth += self.c
+			else:
+				self.schedule.agents[0].wealth += self.c
+				self.schedule.agents[1].wealth += self.b
+			
 		self.data_collector.collect(self)	
 		
 		
@@ -271,9 +342,12 @@ incremental_tax_model_params = dict(
 	tax_d = tax_d
 	)
 
+n_defection_params = copy.deepcopy(default_model_params)
+n_defection_params['n'] = 2
+
 #%%
 
-# compute arrays for alignment with respect to equality
+# compute arrays for alignment with respect to equality for tax norms
 array_equality_default = alignment_array(RandomDilemma, default_model_params, alignment_equality)
 with open("results/array_equality_default.nparray", "wb+") as file:
 	pickle.dump(array_equality_default, file)
@@ -288,32 +362,217 @@ with open("results/array_equality_incremental.nparray", "wb+") as file:
 
 #%%
 
+
 #%%
 
-array_equality_default = pickle.load(open("results/array_equality_default.nparray", "rb"))
+# plot alignment arrays for value equality
 array_equality_fixed = pickle.load(open("results/array_equality_fixed.nparray", "rb"))
 array_equality_incremental = pickle.load(open("results/array_equality_incremental.nparray", "rb"))
 
-plt.subplots(figsize=(35, 10))
-plt.subplot(1, 3, 3)
-plt.imshow(array_equality_default, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='auto', vmin=-1, vmax=1)
+plt.subplots(figsize=(25, 10))
+plt.subplot(1, 2, 2)
+plt.imshow(array_equality_incremental, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='auto', vmin=-1, vmax=1)
 plt.xticks([0, 0.5, 1])
 cbar = plt.colorbar()
 cbar.set_ticks(np.linspace(start=-1, stop=1, num=5))
-cbar.set_label(r'$\mathsf{Algn}_{equality}^{i}$', rotation=90)
+cbar.set_label(r'$\mathsf{Algn}_{equality}^{\alpha, \beta}$', rotation=90)
 plt.xlabel(r'Cooperation probability of $\beta$')
 
-plt.subplot(1, 3, 2)
+plt.subplot(1, 2, 1)
 plt.imshow(array_equality_fixed, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='equal', vmin=-1, vmax=1)
 plt.xticks([0, 0.5, 1])
 plt.xlabel(r'Cooperation probability of $\beta$')
+plt.ylabel(r'Cooperation probability of $\alpha$')
 
-plt.subplot(1, 3, 1)
-plt.imshow(array_equality_incremental, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='equal', vmin=-1, vmax=1)
+plt.savefig('plots/array_equality_taxes.eps', format='eps', bbox_inches='tight')
+
+#%%
+
+
+#%%
+
+# compute alignment with respect to gain for tax norms
+additional_params = dict(
+	max_M=max(norm0),
+	min_M=min(norm0)
+	)
+
+array_gain_default = alignment_array(RandomDilemma, default_model_params, alignment_gain, algn_func_extra=additional_params)
+with open("results/array_gain_default.nparray", "wb+") as file:
+	pickle.dump(array_gain_default, file)
+	
+array_gain_fixed = alignment_array(RandomDilemmaFixedTaxes, fixed_tax_model_params, alignment_gain, algn_func_extra=additional_params)
+with open("results/array_gain_fixed.nparray", "wb+") as file:
+	pickle.dump(array_gain_fixed, file)
+	
+array_gain_incremental = alignment_array(RandomDilemmaIncrementalTaxes, incremental_tax_model_params, alignment_gain, algn_func_extra=additional_params)
+with open("results/array_gain_incremental.nparray", "wb+") as file:
+	pickle.dump(array_gain_incremental, file)
+
+
+#%%
+
+
+#%%
+
+# plot alignment arrays for value personal gain
+array_gain_fixed = pickle.load(open("results/array_gain_fixed.nparray", "rb"))
+array_gain_incremental = pickle.load(open("results/array_gain_incremental.nparray", "rb"))
+
+plt.subplots(figsize=(25, 10))
+plt.subplot(1, 2, 2)
+plt.imshow(array_gain_incremental, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='auto', vmin=-1, vmax=1)
+plt.xticks([0, 0.5, 1])
+cbar = plt.colorbar()
+cbar.set_ticks(np.linspace(start=-1, stop=1, num=5))
+cbar.set_label(r'$\mathsf{Algn}_{gain}^{\alpha}$', rotation=90)
+plt.xlabel(r'Cooperation probability of $\beta$')
+
+plt.subplot(1, 2, 1)
+plt.imshow(array_gain_fixed, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='equal', vmin=-1, vmax=1)
 plt.xticks([0, 0.5, 1])
 plt.xlabel(r'Cooperation probability of $\beta$')
 plt.ylabel(r'Cooperation probability of $\alpha$')
-plt.show()
+
+plt.savefig('plots/array_gain_taxes.eps', format='eps', bbox_inches='tight')
+
+#%%
+
+
+#%%
+
+# compute alignment with respect to equality for systems with norms limiting transitions
+array_equality_two_defections = alignment_array(RandomDilemmaNDefections, n_defection_params, alignment_equality)
+with open("results/array_equality_two_defections.nparray", "wb+") as file:
+	pickle.dump(array_equality_two_defections, file)
+	
+array_equality_double_defection = alignment_array(RandomDilemmaDoubleDefection, default_model_params, alignment_equality)
+with open("results/array_equality_double_defection.nparray", "wb+") as file:
+	pickle.dump(array_equality_double_defection, file)
 
 #%%
 	
+#%%
+	
+# plot alignment arrays for value equality
+array_equality_two_defections = pickle.load(open("results/array_equality_two_defections.nparray", "rb"))
+array_equality_double_defection = pickle.load(open("results/array_equality_double_defection.nparray", "rb"))
+
+plt.subplots(figsize=(25, 10))
+plt.subplot(1, 2, 2)
+plt.imshow(array_equality_double_defection, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='auto', vmin=-1, vmax=1)
+plt.xticks([0, 0.5, 1])
+cbar = plt.colorbar()
+cbar.set_ticks(np.linspace(start=-1, stop=1, num=5))
+cbar.set_label(r'$\mathsf{Algn}_{equality}^{\alpha, \beta}$', rotation=90)
+plt.xlabel(r'Cooperation probability of $\beta$')
+
+plt.subplot(1, 2, 1)
+plt.imshow(array_equality_two_defections, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='equal', vmin=-1, vmax=1)
+plt.xticks([0, 0.5, 1])
+plt.xlabel(r'Cooperation probability of $\beta$')
+plt.ylabel(r'Cooperation probability of $\alpha$')
+
+plt.savefig('plots/array_equality_bans.eps', format='eps', bbox_inches='tight')
+	
+#%%
+
+
+#%%
+
+array_equality_default = pickle.load(open("results/array_equality_default.nparray", "rb"))
+
+array_equality_comparison = np.zeros(shape=(11, 11))
+
+relative_algn_cases = {
+	'1': 'default ~ two defections ~ double defection',
+	'2': 'default ~ double defection > two defections',
+	'3': 'default ~ two defections > double defection',
+	'4': 'two defections > default > double defection'
+	}
+
+threshold = 0.1
+
+for i, j in itertools.product(range(11), repeat=2):
+	default_twodefections = array_equality_default[i][j] - array_equality_two_defections[i][j]
+	default_doubledefection = array_equality_default[i][j] - array_equality_double_defection[i][j]
+	twodefections_doubledefection = array_equality_two_defections[i][j] - array_equality_double_defection[i][j]
+	
+	if abs(default_twodefections) < threshold and abs(default_doubledefection) < threshold:
+		array_equality_comparison[i][j] = 1
+				
+	elif abs(default_twodefections) < threshold and default_doubledefection > threshold:
+		array_equality_comparison[i][j] = 2
+		
+	elif default_twodefections < -threshold and abs(default_doubledefection) < threshold:
+		array_equality_comparison[i][j] = 3
+		
+	elif default_twodefections < -threshold and default_doubledefection > threshold:
+		array_equality_comparison[i][j] = 4
+	
+	else:
+		array_equality_comparison[i][j] = 5
+	
+
+plt.figure(figsize=(12, 10))	
+im = plt.imshow(array_equality_comparison, origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='equal')
+plt.xlabel(r'Cooperation probability of $\beta$')
+plt.ylabel(r'Cooperation probability of $\alpha$')
+
+values = np.unique(array_equality_comparison.ravel())
+colors = [im.cmap(im.norm(value)) for value in values]
+labels = [
+	r'default$\sim$two consec. def.$\sim$mutual def.',
+	r'default$\sim$two consec. def.$\succ$mutual def.',
+	r'two consec. def.$\succ$default$\sim$mutual def.',
+	r'two consec. def.$\succ$default$\succ$mutual def.'
+	]
+patches = [mpatches.Patch(color=color, label=label) for color, label in zip(colors, labels)]
+plt.legend(handles=patches, bbox_to_anchor=(0.5, -0.15), loc='upper center', borderaxespad=0. )
+plt.grid()
+
+plt.savefig('plots/array_equality_comparison_ban.eps', format='eps', bbox_inches='tight')
+
+#%%
+
+
+#%%
+
+# compute alignment with respect to gain for systems with norms limiting transitions
+array_gain_two_defections = alignment_array(RandomDilemmaNDefections, n_defection_params, alignment_gain, algn_func_extra=additional_params)
+with open("results/array_gain_two_defections.nparray", "wb+") as file:
+	pickle.dump(array_gain_two_defections, file) 
+	
+array_gain_double_defection = alignment_array(RandomDilemmaDoubleDefection, default_model_params, alignment_gain, algn_func_extra=additional_params)
+with open("results/array_gain_double_defection.nparray", "wb+") as file:
+	pickle.dump(array_gain_double_defection, file)
+
+#%%
+
+
+#%%
+
+# plot alignment arrays for value personal gain
+array_gain_two_defections = pickle.load(open("results/array_gain_two_defections.nparray", "rb"))
+array_gain_double_defection = pickle.load(open("results/array_gain_double_defection.nparray", "rb"))
+
+plt.subplots(figsize=(25, 10))
+plt.subplot(1, 2, 2)
+plt.imshow(array_gain_double_defection, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='auto', vmin=-1, vmax=1)
+plt.xticks([0, 0.5, 1])
+cbar = plt.colorbar()
+cbar.set_ticks(np.linspace(start=-1, stop=1, num=5))
+cbar.set_label(r'$\mathsf{Algn}_{gain}^{\alpha}$', rotation=90)
+plt.xlabel(r'Cooperation probability of $\beta$')
+
+plt.subplot(1, 2, 1)
+plt.imshow(array_gain_two_defections, cmap='binary', origin='lower', extent=[-0.05, 1.05, -0.05, 1.05], aspect='equal', vmin=-1, vmax=1)
+plt.xticks([0, 0.5, 1])
+plt.xlabel(r'Cooperation probability of $\beta$')
+plt.ylabel(r'Cooperation probability of $\alpha$')
+
+plt.savefig('plots/array_gain_bans.eps', format='eps', bbox_inches='tight')
+
+#%%
+
+
