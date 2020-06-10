@@ -4,9 +4,10 @@
 
 @author: Nieves Montes Gómez
 
-@description: ...
+@description: Code for the implementation of norms in the two-agent iterated
+prisoner's dilemma model.
 """
-# TODO: comment code properly
+
 import copy
 import itertools
 import pickle
@@ -24,8 +25,10 @@ from mesa.batchrunner import BatchRunner
 
 
 def pref_GI(model):
-	"""Compute the preference with respect to gain given the current post-transition
-	state."""
+	"""
+	Compute the preference with respect to gain given the current post-transition
+	state.
+	"""
 	x_alpha = model.schedule.agents[0].wealth
 	x_beta = model.schedule.agents[1].wealth
 	return 1-2*abs(x_alpha-x_beta)/max(x_alpha+x_beta, 1.E-5)
@@ -77,10 +80,11 @@ class RandomDilemma(Model):
 
 	def step(self):
 		"""
-		Advance the model by one step:
+		Advance the model by one step.
 			- all agents take their actions.
 			- increment agent's wealth according to their actions.
 			- collect the data on individual wealth.
+			
 		"""
 		self.schedule.step()
 		if self.schedule.agents[0].action == 'C' and self.schedule.agents[1].action == 'C':
@@ -100,6 +104,8 @@ class RandomDilemma(Model):
 		
 class RandomDilemmaFixedTaxes(RandomDilemma):
 	"""
+	2A-IPD model where agents pay taxes when they receive their wealth, according to a
+	fixed tax rate.
 	"""
 	def __init__(self, pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy, tax_rate):
 		super().__init__(pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy)
@@ -132,6 +138,8 @@ class RandomDilemmaFixedTaxes(RandomDilemma):
 		
 class RandomDilemmaIncrementalTaxes(RandomDilemma):
 	"""
+	2A-IPD model where agents pay a different tax a different tax depending on
+	the rewards they obtain.
 	"""
 	def __init__(self, pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy,
 							tax_a, tax_b, tax_c, tax_d):
@@ -164,7 +172,7 @@ class RandomDilemmaIncrementalTaxes(RandomDilemma):
 		
 class RandomDilemmaNDefections(RandomDilemma):
 	"""
-	Class for a random dilemma model where no more than n defections are allowed.
+	Class for a 2A-IPD model where no more than n defections are allowed.
 	"""
 	def __init__(self, pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy, n):
 		super().__init__(pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy)
@@ -175,6 +183,14 @@ class RandomDilemmaNDefections(RandomDilemma):
 			ag.counter = 0
 		
 	def step(self):
+		"""
+		Advance the model by one step:
+			- all agents take their actions.
+			- add defections to the counter. If counter exceed allowed defections,
+			 change action to cooperate.
+			- increment agent's wealth according to their actions.
+			- collect the data on individual wealth.
+		"""
 		self.schedule.step()
 		
 		# if agents defect add to the counter
@@ -204,12 +220,18 @@ class RandomDilemmaNDefections(RandomDilemma):
 		
 class RandomDilemmaDoubleDefection(RandomDilemma):
 	"""
-	Class for a random dilemma model where double defections are not allowed.
+	Class for 2A-IPD model where mutual defections are not allowed.
 	"""
 	def __init__(self, pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy):
 		super().__init__(pdt_a, pdt_b, pdt_c, pdt_d, alpha_actions, beta_actions, dummy)
 		
 	def step(self):
+		"""
+		Advance the model by one step:
+			- all agents take their actions.
+			- increment agent's wealth according to their actions.
+			- collect the data on individual wealth.
+		"""
 		self.schedule.step()
 						
 		if self.schedule.agents[0].action == 'C' and self.schedule.agents[1].action == 'C':
@@ -221,6 +243,7 @@ class RandomDilemmaDoubleDefection(RandomDilemma):
 		elif self.schedule.agents[0].action == 'D' and self.schedule.agents[1].action == 'C':
 			self.schedule.agents[0].wealth += self.c
 			self.schedule.agents[1].wealth += self.b
+		# if mutual defection: swicth to either CD or DC
 		elif self.schedule.agents[0].action == 'D' and self.schedule.agents[1].action == 'D':
 			if uniform() < 0.5:
 				self.schedule.agents[0].wealth += self.b
@@ -280,6 +303,10 @@ def alignment_gain(model_cls, model_params, max_M, min_M, length, paths):
 
 
 def alignment_array(model_cls, model_params_no_probs, alignment_function, algn_func_extra=None, length=10, paths=10000):
+	"""
+	Compute the alignment as a function of the probability of cooperation of both
+	agents.
+	"""
 	probabilities = np.linspace(0, 1, 11)
 	algn_array = np.zeros(shape=(len(probabilities), len(probabilities)))
 	for prob_alpha, prob_beta in itertools.product(probabilities, repeat=2):
@@ -307,7 +334,7 @@ def alignment_array(model_cls, model_params_no_probs, alignment_function, algn_f
 	return algn_array
 	
 	
-		
+# common parameters	
 length = 10  # length of paths
 paths = 10000  # number of paths
 norm0 = [6, 0, 9, 3]  # classical PD
@@ -316,6 +343,7 @@ fixed_tax_rate = 1/3
 incremental_taxes = [3, 0, 5, 0]
 tax_a, tax_b, tax_c, tax_d = incremental_taxes
 
+# parameters for each model
 default_model_params = dict(
 	pdt_a = pdt_a,
 	pdt_b = pdt_b,
@@ -479,6 +507,9 @@ plt.savefig('plots/array_equality_bans.eps', format='eps', bbox_inches='tight')
 
 
 #%%
+
+# compute relative alignment with respect to equality for bans among them and
+# with respect to the default.
 
 array_equality_default = pickle.load(open("results/array_equality_default.nparray", "rb"))
 
