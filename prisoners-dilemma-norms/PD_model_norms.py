@@ -605,5 +605,3 @@ plt.ylabel(r'Cooperation probability of $\alpha$')
 plt.savefig('plots/array_gain_bans.eps', format='eps', bbox_inches='tight')
 
 #%%
-
-
