@@ -25,3 +25,5 @@ he folders and files correspond to the following implementations:
     * The script ```genetic_search.py``` is the one that actually executes the genetic search.
     * The script ```auxiliary.py``` performs complementary computations, such as those related to the cross-alignment and it produces all the plots related to the evolution of the optimal models.
     * The script ```shapley.py``` implements the function for the computation of the Shapley values given the optimal model's parameters and the baseline ones. It runs the function with all of the three optimal models.
+
+A complete copy of the Master's thesis report can be downloaded [here](https://drive.google.com/file/d/1WNR8kukZtybedwo18gk5s_MDhv1Ls2yK/view?usp=sharing).
